@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Infinity Loop Animation with Three.js</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            /* overflow: hidden; */
+            font-family: Arial, sans-serif;
+            background-color: #000;
+            color: white;
+        }
+        canvas {
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: -1;
+        }
+        .header {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 1;
+        }
+        .header h1 {
+            font-size: 4rem;
+            margin: 0;
+        }
+        .header p {
+            font-size: 1.5rem;
+            margin: 0;
+        }
+        .header button {
+            padding: 0.5rem 1.5rem;
+            font-size: 1rem;
+            border: none;
+            background-color: #fff;
+            color: #000;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-top: 1rem;
+        }
+    </style>
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Web Development Agency</h1>
+        <p>Crafting modern and innovative web solutions</p>
+        <button>Contact Us</button>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script type="module">
+        // Basic setup
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000); // Aspect ratio set to 1 initially
+        const renderer = new THREE.WebGLRenderer();
+        
+        // Custom dimensions
+        const customWidth = 1300;
+        const customHeight = 600;
+        
+        // Set renderer size to custom dimensions
+        renderer.setSize(customWidth, customHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Create gradient texture for circles
+        const createGradientTexture = (size) => {
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const context = canvas.getContext('2d');
+            const gradient = context.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+            gradient.addColorStop(0, '#2DA8D3');
+            gradient.addColorStop(1, '#2D60C4');
+            context.fillStyle = gradient;
+            context.fillRect(0, 0, size, size);
+            return new THREE.CanvasTexture(canvas);
+        };
+
+        // Circle properties
+        const circleGeometry = new THREE.CircleGeometry(4, 50);
+        const numCircles = 40;
+        const loopDuration = 10000000; // Duration of one loop in milliseconds (increased for slower animation)
+        const circles = [];
+
+        // Create different circles
+        for (let i = 0; i < numCircles; i++) {
+            const angle = (i / numCircles) * Math.PI * 2;
+            const size = Math.random() * 3 + 0.5; // Random size between 0.5 and 3
+            const x = (Math.random() - 0.5) * 100; // Increased range for x position
+            const y = (Math.random() - 0.5) * 100; // Increased range for y position
+            const z = (Math.random() - 0.5) * 100; // Increased range for z position
+
+            const circleMaterial = new THREE.MeshBasicMaterial({ map: createGradientTexture(512) });
+            const circle = new THREE.Mesh(circleGeometry.clone().scale(size, size, 1), circleMaterial);
+            circle.position.set(x, y, z);
+            scene.add(circle);
+            circles.push(circle);
+        }
+
+        // Set camera position
+        camera.position.z = 80; // Increased camera distance for better view
+
+        // Update camera aspect ratio based on custom dimensions
+        camera.aspect = customWidth / customHeight;
+        camera.updateProjectionMatrix();
+
+        // Animate circles in an infinity loop
+        const clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const elapsedTime = clock.getElapsedTime();
+            const loopProgress = (elapsedTime % (loopDuration / 1000)) / (loopDuration / 1000);
+            const angleOffset = loopProgress * Math.PI * 2;
+
+            circles.forEach((circle) => {
+                const angle = Math.atan2(circle.position.y, circle.position.x) + angleOffset;
+                const distance = Math.sqrt(circle.position.x ** 2 + circle.position.y ** 2);
+                circle.position.x = distance * Math.cos(angle);
+                circle.position.y = distance * Math.sin(angle);
+            });
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            // Custom dimensions
+            const customWidth = 1000;  // Width in pixels
+            const customHeight = 900; // Height in pixels
+
+            // Adjust renderer size and camera aspect ratio
+            renderer.setSize(customWidth, customHeight);
+            camera.aspect = customWidth / customHeight;
+            camera.updateProjectionMatrix();
+        });
+    </script>
+</body>
+</html>
